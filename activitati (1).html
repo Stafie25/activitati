@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Activități">
+<meta name="theme-color" content="#0a0a0f">
+<title>Activități</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --surface2: #1c1c28;
+    --surface3: #252535;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --accent: #c8a96e;
+    --accent2: #e8c88a;
+    --text: #f0eee8;
+    --text2: #a09e98;
+    --text3: #5a5855;
+    --danger: #e05c5c;
+    --success: #5cb88a;
+    --warn: #e0995c;
+    --radius: 18px;
+    --radius-sm: 12px;
+    --safe-top: env(safe-area-inset-top, 44px);
+    --safe-bottom: env(safe-area-inset-bottom, 34px);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+    overscroll-behavior: none;
+  }
+  h1, h2 { font-family: 'DM Serif Display', serif; }
+
+  /* ── Layout ── */
+  #app { display: flex; flex-direction: column; min-height: 100vh; min-height: -webkit-fill-available; }
+
+  header {
+    padding: calc(var(--safe-top) + 8px) 24px 16px;
+    background: var(--bg);
+    position: sticky; top: 0; z-index: 10;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .header-inner { display: flex; align-items: center; justify-content: space-between; }
+  .header-title { font-family: 'DM Serif Display', serif; font-size: 28px; color: var(--accent2); letter-spacing: -0.5px; }
+  .header-date { font-size: 13px; color: var(--text3); margin-top: 2px; letter-spacing: 0.02em; }
+  .add-btn {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: var(--accent); border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; color: #0a0a0f; font-weight: 300;
+    transition: transform 0.15s, background 0.15s;
+    flex-shrink: 0;
+  }
+  .add-btn:active { transform: scale(0.93); background: var(--accent2); }
+
+  main { flex: 1; padding: 20px 16px; overflow-y: auto; }
+
+  /* ── Notification bar ── */
+  #notif-bar {
+    margin: 0 0 20px;
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    background: var(--surface2);
+    border: 0.5px solid var(--border2);
+    font-size: 13px;
+    color: var(--text2);
+    display: flex; align-items: center; gap: 10px;
+  }
+  #notif-bar.ok { border-color: rgba(92,184,138,0.4); background: rgba(92,184,138,0.08); color: var(--success); }
+  #notif-bar.warn { border-color: rgba(224,153,92,0.4); background: rgba(224,153,92,0.08); color: var(--warn); }
+  .notif-icon { font-size: 18px; flex-shrink: 0; }
+  #notif-action { margin-left: auto; background: rgba(255,255,255,0.1); border: none; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 12px; padding: 6px 12px; border-radius: 8px; cursor: pointer; white-space: nowrap; }
+
+  /* ── Section headers ── */
+  .section-label {
+    font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--text3); margin: 24px 0 10px 4px;
+  }
+  .section-label:first-child { margin-top: 0; }
+
+  /* ── Activity cards ── */
+  .activity-card {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 10px;
+    display: flex; gap: 14px; align-items: flex-start;
+    transition: transform 0.1s;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+  .activity-card::before {
+    content: '';
+    position: absolute; left: 0; top: 16px; bottom: 16px;
+    width: 3px; border-radius: 0 2px 2px 0;
+    background: var(--card-color, var(--accent));
+  }
+  .activity-card:active { transform: scale(0.98); }
+  .card-time-col { min-width: 52px; text-align: right; flex-shrink: 0; }
+  .card-time { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--text); line-height: 1; }
+  .card-ampm { font-size: 11px; color: var(--text3); text-transform: uppercase; }
+  .card-divider { width: 0.5px; background: var(--border2); align-self: stretch; flex-shrink: 0; }
+  .card-content { flex: 1; min-width: 0; }
+  .card-title { font-weight: 500; font-size: 15px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card-desc { font-size: 13px; color: var(--text2); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card-date { font-size: 11px; color: var(--text3); margin-top: 6px; }
+  .card-badges { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .badge {
+    font-size: 11px; padding: 3px 8px; border-radius: 6px;
+    font-weight: 400; letter-spacing: 0.02em;
+  }
+  .badge-notif { background: rgba(200,169,110,0.15); color: var(--accent); border: 0.5px solid rgba(200,169,110,0.3); }
+  .badge-past { background: rgba(90,88,85,0.2); color: var(--text3); }
+  .badge-soon { background: rgba(224,153,92,0.15); color: var(--warn); border: 0.5px solid rgba(224,153,92,0.3); }
+
+  .empty-state {
+    text-align: center; padding: 60px 24px;
+    color: var(--text3);
+  }
+  .empty-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.4; }
+  .empty-title { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--text2); margin-bottom: 8px; }
+  .empty-sub { font-size: 14px; line-height: 1.6; }
+
+  /* ── Bottom padding ── */
+  .bottom-pad { height: calc(var(--safe-bottom) + 16px); }
+
+  /* ── Modal / Sheet ── */
+  .sheet-overlay {
+    position: fixed; inset: 0; z-index: 100;
+    background: rgba(0,0,0,0.7);
+    display: flex; flex-direction: column; justify-content: flex-end;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+  .sheet-overlay.open { opacity: 1; pointer-events: all; }
+  .sheet {
+    background: var(--surface);
+    border-radius: 24px 24px 0 0;
+    padding: 0 0 calc(var(--safe-bottom) + 16px);
+    transform: translateY(100%);
+    transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+    max-height: 92vh;
+    overflow-y: auto;
+  }
+  .sheet-overlay.open .sheet { transform: translateY(0); }
+  .sheet-handle {
+    width: 36px; height: 4px; border-radius: 2px;
+    background: var(--border2); margin: 12px auto 4px;
+  }
+  .sheet-header {
+    padding: 12px 20px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .sheet-title { font-family: 'DM Serif Display', serif; font-size: 22px; }
+  .sheet-close {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--surface3); border: none; cursor: pointer;
+    color: var(--text2); font-size: 18px; display: flex; align-items: center; justify-content: center;
+  }
+  .sheet-body { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+
+  /* ── Form elements ── */
+  .field-label { font-size: 12px; color: var(--text3); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 6px; }
+  .field-input, .field-textarea, .field-select {
+    width: 100%;
+    background: var(--surface2);
+    border: 0.5px solid var(--border2);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    padding: 12px 14px;
+    outline: none;
+    transition: border-color 0.15s;
+    -webkit-appearance: none;
+  }
+  .field-input:focus, .field-textarea:focus, .field-select:focus { border-color: var(--accent); }
+  .field-textarea { min-height: 80px; resize: none; line-height: 1.5; }
+  .field-select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23a09e98' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
+  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  .color-picker { display: flex; gap: 10px; flex-wrap: wrap; }
+  .color-dot {
+    width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
+    border: 2.5px solid transparent;
+    transition: transform 0.15s, border-color 0.15s;
+  }
+  .color-dot.selected { border-color: var(--text); transform: scale(1.1); }
+
+  .btn-row { display: flex; gap: 10px; margin-top: 8px; }
+  .btn {
+    flex: 1; height: 52px; border-radius: var(--radius-sm);
+    border: none; cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px; font-weight: 500;
+    transition: transform 0.1s, opacity 0.1s;
+  }
+  .btn:active { transform: scale(0.97); opacity: 0.85; }
+  .btn-primary { background: var(--accent); color: #0a0a0f; }
+  .btn-secondary { background: var(--surface3); color: var(--text2); }
+  .btn-danger { background: rgba(224,92,92,0.15); color: var(--danger); border: 0.5px solid rgba(224,92,92,0.3); }
+
+  /* ── Detail sheet ── */
+  .detail-hero {
+    padding: 24px 20px 16px;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .detail-color-bar {
+    width: 100%; height: 4px; border-radius: 2px;
+    margin-bottom: 16px;
+  }
+  .detail-title { font-family: 'DM Serif Display', serif; font-size: 26px; line-height: 1.2; color: var(--text); }
+  .detail-meta { font-size: 14px; color: var(--text2); margin-top: 8px; }
+  .detail-desc { font-size: 14px; color: var(--text2); line-height: 1.6; padding: 16px 20px; border-bottom: 0.5px solid var(--border); }
+  .detail-notifs { padding: 16px 20px; border-bottom: 0.5px solid var(--border); }
+  .detail-notif-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; }
+  .detail-notif-row + .detail-notif-row { border-top: 0.5px solid var(--border); }
+  .notif-time-badge { background: rgba(200,169,110,0.12); color: var(--accent); border: 0.5px solid rgba(200,169,110,0.25); border-radius: 8px; padding: 4px 10px; font-size: 13px; font-weight: 500; flex-shrink: 0; }
+  .detail-actions { padding: 16px 20px; display: flex; flex-direction: column; gap: 10px; }
+
+  /* ── Toast ── */
+  #toast {
+    position: fixed; bottom: calc(var(--safe-bottom) + 20px); left: 50%; transform: translateX(-50%) translateY(100px);
+    background: var(--surface3); color: var(--text);
+    padding: 12px 20px; border-radius: 50px;
+    font-size: 14px; white-space: nowrap;
+    transition: transform 0.3s cubic-bezier(0.25,1,0.5,1), opacity 0.3s;
+    opacity: 0; z-index: 999; pointer-events: none;
+    border: 0.5px solid var(--border2);
+  }
+  #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+  input[type="datetime-local"], input[type="date"], input[type="time"] {
+    color-scheme: dark;
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="header-inner">
+      <div>
+        <div class="header-title">Activități</div>
+        <div class="header-date" id="hdate"></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="add-btn" style="width:40px;height:40px;font-size:18px;background:var(--surface3);color:var(--accent)" onclick="exportAllICS()" aria-label="Export Calendar" title="Export toate în Calendar">📅</button>
+        <button class="add-btn" onclick="openAdd()" aria-label="Adaugă activitate">+</button>
+      </div>
+    </div>
+  </header>
+  <main id="main-list"></main>
+</div>
+
+<div id="toast"></div>
+
+<!-- Add/Edit Sheet -->
+<div class="sheet-overlay" id="add-sheet" onclick="handleOverlayClick(event,'add-sheet')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <span class="sheet-title" id="sheet-title">Activitate nouă</span>
+      <button class="sheet-close" onclick="closeSheet('add-sheet')">✕</button>
+    </div>
+    <div class="sheet-body">
+      <div>
+        <div class="field-label">Titlu *</div>
+        <input class="field-input" id="f-title" type="text" placeholder="Ex: Ședință, Curs, Antrenament…" maxlength="80">
+      </div>
+      <div class="row-2">
+        <div>
+          <div class="field-label">Data *</div>
+          <input class="field-input" id="f-date" type="date">
+        </div>
+        <div>
+          <div class="field-label">Ora *</div>
+          <input class="field-input" id="f-time" type="time">
+        </div>
+      </div>
+      <div>
+        <div class="field-label">Descriere</div>
+        <textarea class="field-textarea" id="f-desc" placeholder="Detalii, locație, note…"></textarea>
+      </div>
+      <div>
+        <div class="field-label">Culoare</div>
+        <div class="color-picker" id="color-picker"></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="closeSheet('add-sheet')">Anulează</button>
+        <button class="btn btn-primary" onclick="saveActivity()">Salvează</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Detail Sheet -->
+<div class="sheet-overlay" id="detail-sheet" onclick="handleOverlayClick(event,'detail-sheet')">
+  <div class="sheet" id="detail-content"></div>
+</div>
+
+<script>
+const COLORS = [
+  { name: 'auriu',   hex: '#c8a96e' },
+  { name: 'coral',   hex: '#e07060' },
+  { name: 'mint',    hex: '#5cb88a' },
+  { name: 'albastru',hex: '#5c8be0' },
+  { name: 'violet',  hex: '#9b6ee0' },
+  { name: 'roz',     hex: '#d46e9e' },
+  { name: 'portocal',hex: '#e0995c' },
+  { name: 'cyan',    hex: '#5cccd4' },
+];
+
+let activities = JSON.parse(localStorage.getItem('actvs') || '[]');
+let editId = null;
+let selectedColor = COLORS[0].hex;
+let notifTimers = {};
+
+// ── Helpers ──
+function saveAll() { localStorage.setItem('actvs', JSON.stringify(activities)); }
+function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
+function fmt12h(dateStr, timeStr) {
+  const [h,m] = timeStr.split(':').map(Number);
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const hh = h % 12 || 12;
+  return { h: String(hh).padStart(2,'0'), m: String(m).padStart(2,'0'), ampm };
+}
+function fmtDate(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString('ro-RO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+}
+function fmtDateShort(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString('ro-RO', { weekday: 'short', month: 'short', day: 'numeric' });
+}
+function activityTs(a) { return new Date(a.date + 'T' + a.time).getTime(); }
+function isToday(dateStr) {
+  const today = new Date();
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toDateString() === today.toDateString();
+}
+function isTomorrow(dateStr) {
+  const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate()+1);
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toDateString() === tomorrow.toDateString();
+}
+function sectionLabel(dateStr) {
+  if (isToday(dateStr)) return 'Astăzi';
+  if (isTomorrow(dateStr)) return 'Mâine';
+  return fmtDate(dateStr);
+}
+function timeUntil(ts) {
+  const diff = ts - Date.now();
+  if (diff < 0) return null;
+  const h = Math.floor(diff / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  if (h > 48) return null;
+  if (h === 0) return `în ${m}m`;
+  if (m === 0) return `în ${h}h`;
+  return `în ${h}h ${m}m`;
+}
+
+// ── Date header ──
+function updateHeader() {
+  const now = new Date();
+  document.getElementById('hdate').textContent = now.toLocaleDateString('ro-RO', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+}
+updateHeader();
+setInterval(updateHeader, 60000);
+
+// ── Render ──
+function render() {
+  const main = document.getElementById('main-list');
+  const now = Date.now();
+  const sorted = [...activities].sort((a,b) => activityTs(a) - activityTs(b));
+  const future = sorted.filter(a => activityTs(a) + 3600000 > now);
+  const past = sorted.filter(a => activityTs(a) + 3600000 <= now);
+
+  if (!activities.length) {
+    main.innerHTML = `<div class="empty-state"><div class="empty-icon">📅</div><div class="empty-title">Nicio activitate</div><div class="empty-sub">Apasă <strong>+</strong> pentru a adăuga prima ta activitate. Vei primi notificări cu 12 și 4 ore înainte.</div></div><div class="bottom-pad"></div>`;
+    return;
+  }
+
+  let html = '';
+  let lastSection = null;
+  for (const a of future) {
+    const sec = sectionLabel(a.date);
+    if (sec !== lastSection) {
+      html += `<div class="section-label">${sec}</div>`;
+      lastSection = sec;
+    }
+    html += cardHTML(a, now);
+  }
+  if (past.length) {
+    html += `<div class="section-label">Trecute</div>`;
+    for (const a of past) html += cardHTML(a, now);
+  }
+  html += `<div class="bottom-pad"></div>`;
+  main.innerHTML = html;
+}
+
+function cardHTML(a, now) {
+  const ts = activityTs(a);
+  const {h,m,ampm} = fmt12h(a.date, a.time);
+  const isPast = ts + 3600000 <= now;
+  const until = timeUntil(ts);
+  const isSoon = until !== null && (ts - now) < 14400000;
+  let badge = '';
+  if (isPast) badge = `<span class="badge badge-past">Finalizată</span>`;
+  else if (isSoon) badge = `<span class="badge badge-soon">⚡ ${until}</span>`;
+  else badge = `<span class="badge badge-notif">🔔 Notificări active</span>`;
+  const shortDate = isToday(a.date) || isTomorrow(a.date) ? '' : `<div class="card-date">${fmtDateShort(a.date)}</div>`;
+  return `<div class="activity-card" style="--card-color:${a.color||'#c8a96e'}" onclick="openDetail('${a.id}')">
+    <div class="card-time-col">
+      <div class="card-time">${h}:${m}</div>
+      <div class="card-ampm">${ampm}</div>
+    </div>
+    <div class="card-divider"></div>
+    <div class="card-content">
+      <div class="card-title">${esc(a.title)}</div>
+      ${a.desc ? `<div class="card-desc">${esc(a.desc)}</div>` : ''}
+      ${shortDate}
+      <div class="card-badges">${badge}</div>
+    </div>
+  </div>`;
+}
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ── Notification bar ──
+function renderNotifBar() {
+  const bar = document.createElement('div');
+  bar.id = 'notif-bar';
+  const perm = Notification.permission;
+  if (perm === 'granted') {
+    bar.className = 'ok';
+    bar.innerHTML = `<span class="notif-icon">🔔</span><span>Notificări activate — vei fi anunțat cu 12 și 4 ore înainte</span>`;
+  } else if (perm === 'denied') {
+    bar.className = 'warn';
+    bar.innerHTML = `<span class="notif-icon">⚠️</span><span>Notificările sunt blocate. Activează-le din Setări > Safari</span>`;
+  } else {
+    bar.innerHTML = `<span class="notif-icon">🔔</span><span>Activează notificările pentru remindere</span><button id="notif-action" onclick="reqNotif()">Activează</button>`;
+  }
+  const main = document.getElementById('main-list');
+  main.prepend(bar);
+}
+
+// ── Sheet helpers ──
+function openSheet(id) { document.getElementById(id).classList.add('open'); document.body.style.overflow = 'hidden'; }
+function closeSheet(id) { document.getElementById(id).classList.remove('open'); document.body.style.overflow = ''; }
+function handleOverlayClick(e, id) { if (e.target === document.getElementById(id)) closeSheet(id); }
+
+// ── Color picker ──
+function buildColorPicker() {
+  const cp = document.getElementById('color-picker');
+  cp.innerHTML = COLORS.map(c => `<div class="color-dot ${c.hex===selectedColor?'selected':''}" style="background:${c.hex}" onclick="pickColor('${c.hex}',this)" title="${c.name}"></div>`).join('');
+}
+function pickColor(hex, el) {
+  selectedColor = hex;
+  document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+// ── Add/Edit ──
+function openAdd() {
+  editId = null;
+  selectedColor = COLORS[0].hex;
+  document.getElementById('sheet-title').textContent = 'Activitate nouă';
+  document.getElementById('f-title').value = '';
+  document.getElementById('f-desc').value = '';
+  const now = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  document.getElementById('f-date').value = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+  document.getElementById('f-time').value = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  buildColorPicker();
+  openSheet('add-sheet');
+  setTimeout(() => document.getElementById('f-title').focus(), 400);
+}
+function openEdit(id) {
+  const a = activities.find(x => x.id === id);
+  if (!a) return;
+  editId = id;
+  selectedColor = a.color || COLORS[0].hex;
+  document.getElementById('sheet-title').textContent = 'Editează';
+  document.getElementById('f-title').value = a.title;
+  document.getElementById('f-date').value = a.date;
+  document.getElementById('f-time').value = a.time;
+  document.getElementById('f-desc').value = a.desc || '';
+  buildColorPicker();
+  closeSheet('detail-sheet');
+  openSheet('add-sheet');
+  setTimeout(() => document.getElementById('f-title').focus(), 400);
+}
+
+function saveActivity() {
+  const title = document.getElementById('f-title').value.trim();
+  const date = document.getElementById('f-date').value;
+  const time = document.getElementById('f-time').value;
+  if (!title) { showToast('Adaugă un titlu'); return; }
+  if (!date || !time) { showToast('Completează data și ora'); return; }
+
+  if (editId) {
+    const idx = activities.findIndex(x => x.id === editId);
+    if (idx !== -1) {
+      activities[idx] = { ...activities[idx], title, date, time, desc: document.getElementById('f-desc').value.trim(), color: selectedColor };
+      scheduleNotifications(activities[idx]);
+    }
+    showToast('Activitate actualizată');
+  } else {
+    const a = { id: genId(), title, date, time, desc: document.getElementById('f-desc').value.trim(), color: selectedColor, created: Date.now() };
+    activities.push(a);
+    scheduleNotifications(a);
+    showToast('Activitate adăugată 🎉');
+  }
+  saveAll(); render();
+  setTimeout(() => renderNotifBar(), 10);
+  closeSheet('add-sheet');
+}
+
+// ── Detail ──
+function openDetail(id) {
+  const a = activities.find(x => x.id === id);
+  if (!a) return;
+  const ts = activityTs(a);
+  const {h,m,ampm} = fmt12h(a.date, a.time);
+  const until = timeUntil(ts);
+  const t12 = new Date(ts - 43200000);
+  const t4  = new Date(ts - 14400000);
+  const fmtT = d => d.toLocaleTimeString('ro-RO', {hour:'2-digit',minute:'2-digit'}) + ' · ' + d.toLocaleDateString('ro-RO',{day:'numeric',month:'short'});
+  document.getElementById('detail-content').innerHTML = `
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <span class="sheet-title">Detalii</span>
+      <button class="sheet-close" onclick="closeSheet('detail-sheet')">✕</button>
+    </div>
+    <div class="detail-hero">
+      <div class="detail-color-bar" style="background:${a.color||'#c8a96e'}"></div>
+      <div class="detail-title">${esc(a.title)}</div>
+      <div class="detail-meta">${fmtDate(a.date)} · ${h}:${m} ${ampm}${until ? ' · <strong>' + until + '</strong>' : ''}</div>
+    </div>
+    ${a.desc ? `<div class="detail-desc">${esc(a.desc).replace(/\n/g,'<br>')}</div>` : ''}
+    <div class="detail-notifs">
+      <div class="field-label" style="margin-bottom:8px">Remindere programate</div>
+      ${ts > Date.now() + 43200000 ? `<div class="detail-notif-row"><span class="notif-time-badge">12h înainte</span><span style="font-size:13px;color:var(--text2)">${fmtT(t12)}</span></div>` : ''}
+      ${ts > Date.now() + 14400000 ? `<div class="detail-notif-row"><span class="notif-time-badge">4h înainte</span><span style="font-size:13px;color:var(--text2)">${fmtT(t4)}</span></div>` : ''}
+      ${ts <= Date.now() + 14400000 ? `<div style="font-size:13px;color:var(--text3);padding:8px 0">Activitate apropiată sau trecută — notificările nu mai sunt disponibile.</div>` : ''}
+    </div>
+    <div class="detail-actions">
+      <button class="btn btn-primary" style="height:48px;font-size:15px" onclick="exportICS('${a.id}')">📅 &nbsp;Adaugă în Calendar iPhone</button>
+      <button class="btn btn-secondary" style="height:44px" onclick="openEdit('${a.id}')">✏️ &nbsp;Editează</button>
+      <button class="btn btn-danger" style="height:44px" onclick="deleteActivity('${a.id}')">🗑 &nbsp;Șterge activitatea</button>
+    </div>
+    <div style="padding:0 20px 8px;font-size:12px;color:var(--text3);line-height:1.5;text-align:center">
+      Apasă butonul de mai sus → iOS îți va cere să adaugi în Calendar → vei primi notificări native cu 12h și 4h înainte.
+    </div>
+  `;
+  openSheet('detail-sheet');
+}
+
+// ── ICS Export ──
+function toICSDate(ts) {
+  const d = new Date(ts);
+  const pad = n => String(n).padStart(2,'0');
+  return d.getUTCFullYear() + pad(d.getUTCMonth()+1) + pad(d.getUTCDate()) + 'T' + pad(d.getUTCHours()) + pad(d.getUTCMinutes()) + '00Z';
+}
+
+function generateICS(actList) {
+  const lines = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Activitati//RO','CALSCALE:GREGORIAN','METHOD:PUBLISH'];
+  for (const a of actList) {
+    const ts = activityTs(a);
+    const start = toICSDate(ts);
+    const end   = toICSDate(ts + 3600000);
+    const uid   = a.id + '@activitati';
+    const desc  = (a.desc || '').replace(/\n/g,'\\n').replace(/,/g,'\\,').replace(/;/g,'\\;');
+    const title = a.title.replace(/,/g,'\\,').replace(/;/g,'\\;');
+    lines.push(
+      'BEGIN:VEVENT',
+      'UID:' + uid,
+      'DTSTART:' + start,
+      'DTEND:' + end,
+      'SUMMARY:' + title,
+      desc ? 'DESCRIPTION:' + desc : '',
+      'BEGIN:VALARM','TRIGGER:-PT12H','ACTION:DISPLAY','DESCRIPTION:Reminder 12h — ' + title,'END:VALARM',
+      'BEGIN:VALARM','TRIGGER:-PT4H','ACTION:DISPLAY','DESCRIPTION:Reminder 4h — ' + title,'END:VALARM',
+      'END:VEVENT'
+    );
+  }
+  lines.push('END:VCALENDAR');
+  return lines.filter(Boolean).join('\r\n');
+}
+
+function downloadICS(content, filename) {
+  const blob = new Blob([content], { type: 'text/calendar;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
+function exportICS(id) {
+  const a = activities.find(x => x.id === id);
+  if (!a) return;
+  downloadICS(generateICS([a]), a.title.replace(/\s+/g,'-') + '.ics');
+  showToast('Fișier .ics descărcat — deschide-l pentru a adăuga în Calendar');
+}
+
+function exportAllICS() {
+  if (!activities.length) { showToast('Nu ai activități de exportat'); return; }
+  downloadICS(generateICS(activities), 'toate-activitatile.ics');
+  showToast('Export complet descărcat 📅');
+}
+
+function deleteActivity(id) {
+  if (!confirm('Ștergi această activitate?')) return;
+  clearNotifTimers(id);
+  activities = activities.filter(a => a.id !== id);
+  saveAll(); render();
+  setTimeout(() => renderNotifBar(), 10);
+  closeSheet('detail-sheet');
+  showToast('Activitate ștearsă');
+}
+
+// ── Notifications ──
+async function reqNotif() {
+  const p = await Notification.requestPermission();
+  render();
+  setTimeout(() => renderNotifBar(), 10);
+  if (p === 'granted') {
+    activities.forEach(scheduleNotifications);
+    showToast('Notificări activate 🔔');
+  }
+}
+
+function clearNotifTimers(id) {
+  if (notifTimers[id]) {
+    notifTimers[id].forEach(clearTimeout);
+    delete notifTimers[id];
+  }
+}
+
+function scheduleNotifications(a) {
+  clearNotifTimers(a.id);
+  if (Notification.permission !== 'granted') return;
+  const ts = activityTs(a);
+  const now = Date.now();
+  const timers = [];
+
+  function schedule(fireAt, label, body) {
+    const delay = fireAt - now;
+    if (delay > 0 && delay < 7 * 24 * 3600 * 1000) {
+      timers.push(setTimeout(() => {
+        new Notification(`⏰ ${label} — ${a.title}`, {
+          body: body,
+          icon: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22><text y=%2226%22 font-size=%2228%22>📅</text></svg>',
+          tag: a.id + label,
+          requireInteraction: false,
+        });
+      }, delay));
+    }
+  }
+
+  const {h,m,ampm} = fmt12h(a.date, a.time);
+  const timeStr = `${h}:${m} ${ampm}`;
+  schedule(ts - 43200000, '12 ore rămase', `"${a.title}" începe la ${timeStr} (${fmtDateShort(a.date)})`);
+  schedule(ts - 14400000, '4 ore rămase',  `"${a.title}" începe curând la ${timeStr}`);
+  notifTimers[a.id] = timers;
+}
+
+function scheduleAll() {
+  if (Notification.permission === 'granted') activities.forEach(scheduleNotifications);
+}
+
+// ── Toast ──
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ── Init ──
+render();
+setTimeout(() => renderNotifBar(), 10);
+scheduleAll();
+</script>
+</body>
+</html>
